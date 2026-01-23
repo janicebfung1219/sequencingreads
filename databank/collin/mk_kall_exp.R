@@ -41,7 +41,7 @@ for (i in 1:nrow(schema)){
   name <- paste0(schema[i,"groups"], "_table")
   pattern <- schema[i,"pattern"]
   table <- cbind(exp_table$target_id, exp_table %>% select(matches(pattern)))
-  filename <- paste0("expout/", schema[i,"groups"], ".csv")
+  filename <- paste0("expout/", schema[i,"groups"], "_table.csv")
   
   write.csv(table, file=filename, row.names = FALSE)
   print(filename)
