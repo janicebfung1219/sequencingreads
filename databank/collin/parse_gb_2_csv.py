@@ -279,18 +279,16 @@ def proc_gf(gf):
             #print(name)
             #print(geneseq)
         
-
         ## RAVI another bad tab, it was
         ## only running if else was satistified. 
         genes.append((name,geneseq))
 
-
     ### gene fasta file
     with open(gene_of, "w") as out:
-        for header, seq in genes:
-            seq = seq.replace("\n", "").replace(" ", "")
-            out.write(f"{header}\n")
-            out.write(wrap_seq(seq,0) + "\n")
+        for gheader,gseq in genes:
+            gseq = gseq.replace("\n", "").replace(" ", "")
+            out.write(f"{gheader}\n")
+            out.write(wrap_seq(gseq,0) + "\n")
             
     print(f"created {gene_of}")
             ### make the fasta, genes only
@@ -303,8 +301,6 @@ def proc_gf(gf):
             if ":".join(k) not in unq:
                 #print(f"{":".join(k)}")
                 unq[":".join(k)]=1
-
-                
 
 
     dict_tRNA= {k: v for k, v in dict.items() if v["type"] == "tRNA"}
@@ -331,12 +327,8 @@ def proc_gf(gf):
   
         ncRNA.append([loc,gn,lcs])
 
-
     ##for row in ncRNA:
        #print(f"{row}")
-
-
-
 
     if 0:
         if len(dict_tmRNA) > 0:
@@ -406,12 +398,6 @@ def proc_gf(gf):
             ##61947,62041,-,tRNA-Sec,HW372_RS00315
             f.write(csv_str)
             print(f"used {gf} to create {csv_of}");
-
-
-
-
-
-
 
 #### #### #### #### #### #### #### #### #### #### #### #### #### #### 
 ##main start
