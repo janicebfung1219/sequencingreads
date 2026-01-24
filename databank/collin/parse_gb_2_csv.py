@@ -195,8 +195,6 @@ def get_genes_trna(dict,pat="tRNA"):
         ret_csv += f"{st},{en},{strnd},{gn},{loc_bare}\n"
     return ret_csv
 
-
-
     
 ##print(f"len(seq)={len(seq)},seq{seq}")
 def wrap_seq(seq, width=60):
@@ -262,8 +260,9 @@ def proc_gf(gf):
             if number != "c00":
                 name = f">{gn}__{lcs}_{number}_rc_{en}"
                 
-                
-                geneseq = complement_dna(fullseq[st - 1 : en][::-1])
+            ### RAVI this was indented one extra tab, so it was only
+            ## running when number != c00 
+            geneseq = complement_dna(fullseq[st - 1 : en][::-1])
                 #print(name)
                 #print(geneseq)
                 #sys.exit()
@@ -274,12 +273,16 @@ def proc_gf(gf):
             name = f">{gn}__{lcs}_{st}"
             if number != "c00":
                 name = f">{gn}__{lcs}_{number}_{st}"
+
+                
             geneseq = fullseq[st - 1 : en]
             #print(name)
             #print(geneseq)
         
-    
-            genes.append((name,geneseq))
+
+        ## RAVI another bad tab, it was
+        ## only running if else was satistified. 
+        genes.append((name,geneseq))
 
 
     ### gene fasta file
