@@ -9,6 +9,6 @@
 	"kallisto_version": "0.51.1",
 	"index_version": 13,
 	"k-mer length": 31,
-	"start_time": "Fri Jan 23 12:26:37 2026",
-	"call": "kallisto quant -i idx/mutans.idx -t 4 -b 100 -o kall_out/mutans_map/SMutans_02 fq/SMutans-02_R1_001.fastq fq/SMutans-02_R2_001.fastq"
+	"start_time": "Sat Jan 24 12:27:27 2026",
+	"call": "kallisto quant -i idx/mutans.idx -t 4 -b 100 -o kall_out/SMutans_02_N fq/SMutans-02_R1_001.fastq fq/SMutans-02_R2_001.fastq"
 }
