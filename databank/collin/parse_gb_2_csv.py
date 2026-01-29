@@ -284,11 +284,14 @@ def proc_gf(gf,csv_of,fa_of,gene_of):
 
     #import sys
 
+    DBG = 0
     ### gene fasta file
     with open(gene_of, "w") as out:
-    
+        print(f"{len(df_all)} entries")
         for row in df_all:
-            print(f"{row}")
+            
+            if DBG:
+                print(f"{row}")
             ##'1254269', '1254631', '-', 'ssrA', 'HW372_RS06065']
             st,en,strand,gn,lcs = row
             st = int(st)
