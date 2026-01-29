@@ -92,40 +92,34 @@ def mk_seq(seq):
 
 
 
-def get_genes(dict):
-
+def genes_2_csv(dict):
     if 0:
         for ky in dict.keys():
             print(f"{ky} {dict[ky]["type"]} {dict[ky]["location"]} {dict[ky]["qualifiers"]}\n")
             break
-    
+        
         
     dict_genes= {k: v for k, v in dict.items() if v["type"] == "gene"}
 
-
-
-    #print(f"dict_genes={dict_genes}")
-    #sys.exit()
-
+    ret_df = []
     ret_csv=""
+    
     for ky in dict_genes.keys():
         ##print(f"GENES {ky} {dict_genes[ky]["location"]} {dict_genes[ky]["qualifiers"]}\n")
         gn = dict_genes[ky]["qualifiers"].get("gene")
         loc = dict_genes[ky]["qualifiers"].get("locus_tag")
 
+        loc_bare = "X"
         if loc is not None:
             loc_bare = loc
             if re.search(r'pseudo',loc_bare) is not None:
-                loc_bare = re.sub(r"/pseudo","",loc_bare)
-
+                loc_bare = re.sub(r"/pseudo","_ps",loc_bare)
         else :
             print(f" why no locus for {ky}")
             sys.exit()
 
-        
         if gn is None: ###uselocus name if gene undefined
-            gn = loc
-        
+            gn = loc_bare
 
         pos = dict_genes[ky].get("location")
         if pos is None:
@@ -138,6 +132,7 @@ def get_genes(dict):
 
         pos = re.sub(r">|<","",pos)
         posm = re.search(r'(\d+)\.\.(\d+)',pos)
+
         if posm is not None:
             st,en = posm.groups()
         else:
@@ -146,15 +141,22 @@ def get_genes(dict):
 
         ###print(f"{st},{en},{strnd},{gn},{loc_bare}");
         ret_csv += f"{st},{en},{strnd},{gn},{loc_bare}\n"
+        ret_df.append([st,en,strnd,gn,loc_bare])
 
-    return ret_csv
+    return ret_csv,ret_df
 
 
-def get_genes_trna(dict,pat="tRNA"):
-##    dict_genes= {k: v for k, v in dict.items() if v["type"] == "tRNA"}
+def ncrna_2_csv(dict,pat="tRNA"):
+    ##    dict_genes= {k: v for k, v in dict.items() if v["type"] == "tRNA"}
     dict_genes= {k: v for k, v in dict.items() if v["type"] == pat}
     
     ret_csv=""
+    ret_df = []
+    
+    if len(dict_genes) == 0:
+        return ret_csv,ret_df
+
+
     for ky in dict_genes.keys():
         loc = dict_genes[ky]["qualifiers"].get("locus_tag")
         prod = dict_genes[ky]["qualifiers"].get("product")
@@ -193,7 +195,9 @@ def get_genes_trna(dict,pat="tRNA"):
             sys.exit();
         ###print(f"{st},{en},{strnd},{gn},{loc_bare}");
         ret_csv += f"{st},{en},{strnd},{gn},{loc_bare}\n"
-    return ret_csv
+        ret_df.append([st,en,strnd,gn,loc_bare])
+        
+    return ret_csv,ret_df
 
     
 ##print(f"len(seq)={len(seq)},seq{seq}")
@@ -207,17 +211,67 @@ def complement_dna(sequence):
     return sequence.translate(trans_table)
 
 ## check tipos (types) in case there are types you have not seen before nad want to handle them
+
+def proc_dict_2_csvf(dict,csv_of):            
+    unq ={}
+    if 0:
+        for k in genes:
+            print(f"{k}")
+            
+            if ":".join(k) not in unq:
+                #print(f"{":".join(k)}")
+                unq[":".join(k)]=1
+
+    if 0:
+        dict_tRNA= {k: v for k, v in dict.items() if v["type"] == "tRNA"}
+        dict_tmRNA= {k: v for k, v in dict.items() if v["type"] == "tmRNA"}
+        dict_misc= {k: v for k, v in dict.items() if v["type"] == "misc_feature"}
+        dict_rRNA= {k: v for k, v in dict.items() if v["type"] == "rRNA"}
+        dict_ncRNA= {k: v for k, v in dict.items() if v["type"] == "ncRNA"}
+
+    ### making the csv entries for annotations
+    csv_str = ""
+
+    #'misc_feature', 'source', 'tmRNA', 'CDS', 'gene', 'regulatory', 'ncRNA', 'rRNA', 'tRNA'
+    feat = ['misc_feature', 'source', 'tmRNA', 'CDS', 'gene', 'regulatory', 'ncRNA', 'rRNA', 'tRNA']
+
+    ### we only pick these features
+    feat =  ['tmRNA', 'gene',  'ncRNA', 'rRNA', 'tRNA']
+
+    df_all = []
     
-def proc_gf(gf):
+    for pat in feat:
+        csv_str_l,df_t = ncrna_2_csv(dict,pat)
+        csv_str += csv_str_l
+        df_all.extend(df_t)
+    
+    csv_str_g,df_g = genes_2_csv(dict)
+    csv_str += csv_str_g
+    df_all.extend(df_g)
+
+    #### csv file of all annotations
+    with open(csv_of, 'w', newline='') as f:
+        f.write("start,end,strand,gene,gene_id\n")
+        ##61947,62041,-,tRNA-Sec,HW372_RS00315
+        f.write(csv_str)
+        print(f"used {gf} to create {csv_of}");
+
+        
+    return df_all;
+
+
+
+def proc_gf(gf,csv_of,fa_of,gene_of):
+    
     dict,tipos,seq = parse_genbank(gf)
 
-    ##print(f"tipos{tipos}")
-    ### dict is a structure keys are features by number feature_9650
-    ##print(f"{dict}")
-    #3sys.exit();
 
-    #sys.exit();
-    dict_gene= {k: v for k, v in dict.items() if v["type"] == "gene"}
+    ### dict is a structure keys are features by number feature_9650    
+    # creates csv file of all annotations of interest
+    df_all = proc_dict_2_csvf(dict,csv_of)    
+
+    
+    ##dict_gene= {k: v for k, v in dict.items() if v["type"] == "gene"}
     
     fullseq = mk_seq(seq).upper()
 
@@ -228,176 +282,38 @@ def proc_gf(gf):
         ##print(f"seq_str={mk_seq(seq)}\n")
         print(f"created {fa_of}")
 
-    
-    ##print(f"{dict_gene}")
-    genes  = []
-    for k,v in dict_gene.items():
-        #print(f"gene k={k},v={v}\n")
-        gn = ""
-        lcs =  ""
-        loc = v['location']
-        name = ""
-        st = ""
-        en = ""
-        if 'gene' in v['qualifiers']:
-            gn = v['qualifiers']['gene']
-            lcs = v['qualifiers']['locus_tag']
-        else:
-            gn = v['qualifiers']['locus_tag']
-            lcs = v['qualifiers']['locus_tag']
-            ##print(f"{v}")
-
-        posm = re.search(r'(\d+)\.\.(\d+)',loc)
-        if posm is not None:
-            st,en = posm.groups()
-            st = int(st)
-            en = int(en)
-        else:
-            continue
-            
-        if 'complement' in v['location']:
-            name = f">{gn}__{lcs}_rc_{en}"
-            if number != "c00":
-                name = f">{gn}__{lcs}_{number}_rc_{en}"
-                
-            ### RAVI this was indented one extra tab, so it was only
-            ## running when number != c00 
-            geneseq = complement_dna(fullseq[st - 1 : en][::-1])
-                #print(name)
-                #print(geneseq)
-                #sys.exit()
-        else:
-            #print(repr(loc))
-            loc = re.sub(r"\.\.\d+", "", loc)
-            #print(f"{loc}")
-            name = f">{gn}__{lcs}_{st}"
-            if number != "c00":
-                name = f">{gn}__{lcs}_{number}_{st}"
-
-                
-            geneseq = fullseq[st - 1 : en]
-            #print(name)
-            #print(geneseq)
-        
-        ## RAVI another bad tab, it was
-        ## only running if else was satistified. 
-        genes.append((name,geneseq))
+    #import sys
 
     ### gene fasta file
     with open(gene_of, "w") as out:
-        for gheader,gseq in genes:
-            gseq = gseq.replace("\n", "").replace(" ", "")
-            out.write(f"{gheader}\n")
-            out.write(wrap_seq(gseq,0) + "\n")
+    
+        for row in df_all:
+            print(f"{row}")
+            ##'1254269', '1254631', '-', 'ssrA', 'HW372_RS06065']
+            st,en,strand,gn,lcs = row
+            st = int(st)
+            en = int(en)
+
+            name = "X"
+            geneseq = "AAAAAA"
+            if strand =='-':
+                name = f">{gn}__{lcs}_rc_{en}"
+                if number != "c00":
+                    name = f">{gn}__{lcs}_{number}_rc_{en}"
+                geneseq = complement_dna(fullseq[st - 1 : en][::-1])
+            else:
+                name = f">{gn}__{lcs}_{st}"
+                if number != "c00":
+                    name = f">{gn}__{lcs}_{number}_{st}"
+                geneseq = fullseq[st - 1 : en]
+        
+            out.write(f"{name}\n")
+            out.write(wrap_seq(geneseq,0) + "\n")
             
     print(f"created {gene_of}")
             ### make the fasta, genes only
+
             
-    unq ={}
-    if 0:
-        for k in genes:
-            print(f"{k}")
-            
-            if ":".join(k) not in unq:
-                #print(f"{":".join(k)}")
-                unq[":".join(k)]=1
-
-
-    dict_tRNA= {k: v for k, v in dict.items() if v["type"] == "tRNA"}
-    dict_tmRNA= {k: v for k, v in dict.items() if v["type"] == "tmRNA"}
-    dict_misc= {k: v for k, v in dict.items() if v["type"] == "misc_feature"}
-    dict_rRNA= {k: v for k, v in dict.items() if v["type"] == "rRNA"}
-    dict_ncRNA= {k: v for k, v in dict.items() if v["type"] == "ncRNA"}
-
-    ##extracting out genes in ncRNA 
-    ncRNA  = []
-    for k,v in dict_ncRNA.items() :
-        ##print(f"gene k={k},v={v}\n")
-        #sys.exit()
-        gene  = ""
-        lcs =  ""
-        loc = v['location']
-        if 'gene' in v['qualifiers']:
-            gn = v['qualifiers']['gene']
-            lcs = v['qualifiers']['locus_tag']
-        else:
-            gn = v['qualifiers']['locus_tag']
-            lcs = v['qualifiers']['locus_tag']
-            print(f"{v}")
-  
-        ncRNA.append([loc,gn,lcs])
-
-    ##for row in ncRNA:
-       #print(f"{row}")
-
-    if 0:
-        if len(dict_tmRNA) > 0:
-            for k,v in dict_tmRNA.items() :
-                print(f"tmRNA k={k},v={v}\n")
-                break
-
-
-        if len(dict_tRNA) > 0:
-            for k,v in dict_tRNA.items() :
-                print(f"tRNA k={k},v={v}\n")
-                break
-
-        if len(dict_misc) > 0:
-            for k,v in dict_misc.items() :
-                print(f"misc k={k},v={v}\n")
-                break
-
-        if len(dict_rRNA) > 0:
-            for k,v in dict_rRNA.items() :
-                print(f"rRNA k={k},v={v}\n")
-                break
-
-        if len(dict_ncRNA) > 0:
-            for k,v in dict_ncRNA.items() :
-                ##print(f"ncRNA k={k},v={v}\n")
-                break    
-
-        ### making the csv entries for annotations
-        csv_str = ""
-
-
-        #'misc_feature', 'source', 'tmRNA', 'CDS', 'gene', 'regulatory', 'ncRNA', 'rRNA', 'tRNA'
-        feat = ['misc_feature', 'source', 'tmRNA', 'CDS', 'gene', 'regulatory', 'ncRNA', 'rRNA', 'tRNA']
-        feat =  ['tmRNA', 'gene',  'ncRNA', 'rRNA', 'tRNA']
-
-        if len(dict_tRNA) > 0:
-            pat = "tRNA"
-            #print(f"{get_genes_trna(dict,pat)}")
-            csv_str += get_genes_trna(dict,pat)
-    
-        if len(dict_tmRNA) > 0:
-            pat = "tmRNA"
-            ##print(f"{get_genes_trna(dict,pat)}")
-            csv_str += get_genes_trna(dict,pat)
-
-
-        if len(dict_ncRNA) > 0:
-            pat = "ncRNA"
-            ##print(f"{get_genes_trna(dict,pat)}")
-            csv_str += get_genes_trna(dict,pat)
-
-        if len(dict_rRNA) > 0:
-            pat = "rRNA"
-            ##print(f"{get_genes_trna(dict,pat)}")
-            csv_str += get_genes_trna(dict,pat)
-
-    
-        #print(f"{get_genes(dict)}")
-        csv_str += get_genes(dict)
-
-
-
-        #### csv file of all annotations
-        with open(csv_of, 'w', newline='') as f:
-            f.write("start,end,strand,gene,gene_id\n")
-            ##61947,62041,-,tRNA-Sec,HW372_RS00315
-            f.write(csv_str)
-            print(f"used {gf} to create {csv_of}");
 
 #### #### #### #### #### #### #### #### #### #### #### #### #### #### 
 ##main start
@@ -422,8 +338,7 @@ if number == "c00":
     fa_of = f"out/nissle.fa"
     gname = f"nissle"
     gene_of = f"genes_fa/nissle_genes.fa"
-    proc_gf(gf)
-    
+    proc_gf(gf,csv_of,fa_of,gene_of)
 elif number == "m00":
     for i in range(26):
         j = i+1
@@ -436,7 +351,8 @@ elif number == "m00":
         gname = f"mutans_{subname}"
         gene_of = f"genes_fa/mutans_{subname}_genes.fa"
         ##dict,tipos,seq = parse_genbank(gf)
-        proc_gf(gf)        
+        proc_gf(gf,csv_of,fa_of,gene_of)
+
     
 else :
     gf=f"refdata/ua159_{number}.gb.gz"
@@ -444,7 +360,7 @@ else :
     fa_of = f"out/mutans_{number}.fa"
     gname = f"mutans_{number}"
     gene_of = f"genes_fa/mutans_{number}_genes.fa"
-    proc_gf(gf)
+    proc_gf(gf,csv_of,fa_of,gene_of)
 sys.exit()
 
 
