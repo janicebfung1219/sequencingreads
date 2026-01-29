@@ -330,6 +330,14 @@ number=sys.argv[1]
 gf="refdata/ua159_c18.gb"
 gf="refdata/ua159_c01.gb"
 
+from pathlib import Path
+
+# Creates 'folder' and any missing parent folders (like 'path/to')
+Path("out").mkdir(parents=True, exist_ok=True)
+Path("genes_fa").mkdir(parents=True, exist_ok=True)
+
+
+
 csv_of = "of.csv"
 gname = "mutans_00"
 if number == "c00":
