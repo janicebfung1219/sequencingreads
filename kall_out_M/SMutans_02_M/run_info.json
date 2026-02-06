@@ -1,0 +1,14 @@
+{
+	"n_targets": 1915,
+	"n_bootstraps": 100,
+	"n_processed": 178,
+	"n_pseudoaligned": 115,
+	"n_unique": 115,
+	"p_pseudoaligned": 64.6,
+	"p_unique": 64.6,
+	"kallisto_version": "0.51.1",
+	"index_version": 13,
+	"k-mer length": 31,
+	"start_time": "Fri Feb  6 10:02:20 2026",
+	"call": "kallisto quant -i idx/mutans.idx -t 4 -b 100 -o kall_out_M/SMutans_02_M fq/SMutans-02_R1_001.fastq fq/SMutans-02_R2_001.fastq"
+}
