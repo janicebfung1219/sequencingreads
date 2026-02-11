@@ -1,14 +1,14 @@
 {
-	"n_targets": 1915,
+	"n_targets": 1964,
 	"n_bootstraps": 100,
 	"n_processed": 178,
-	"n_pseudoaligned": 8,
-	"n_unique": 8,
-	"p_pseudoaligned": 4.5,
-	"p_unique": 4.5,
+	"n_pseudoaligned": 9,
+	"n_unique": 9,
+	"p_pseudoaligned": 5.1,
+	"p_unique": 5.1,
 	"kallisto_version": "0.51.1",
 	"index_version": 13,
 	"k-mer length": 31,
-	"start_time": "Fri Feb  6 10:05:52 2026",
+	"start_time": "Tue Feb 10 22:28:26 2026",
 	"call": "kallisto quant -i idx/mutans.idx -t 4 -b 100 -o kall_out_M/Coculture_01_M fq/Coculture-01_R1_001.fastq fq/Coculture-01_R2_001.fastq"
 }
