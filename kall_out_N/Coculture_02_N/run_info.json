@@ -1,0 +1,14 @@
+{
+	"n_targets": 4863,
+	"n_bootstraps": 100,
+	"n_processed": 178,
+	"n_pseudoaligned": 151,
+	"n_unique": 143,
+	"p_pseudoaligned": 84.8,
+	"p_unique": 80.3,
+	"kallisto_version": "0.51.1",
+	"index_version": 13,
+	"k-mer length": 31,
+	"start_time": "Thu Feb 12 22:16:48 2026",
+	"call": "kallisto quant -i idx/nissle.idx -t 4 -b 100 -o kall_out_N/Coculture_02_N fq/Coculture-02_R1_001.fastq fq/Coculture-02_R2_001.fastq"
+}
